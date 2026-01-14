@@ -10,6 +10,6 @@ if __name__ == "__main__":
     my_kitchen = room.Kitchen(11, 12, True)
     print(my_kitchen.describe_room())
     print(my_kitchen.get_purpose())
-    print(f"The recommened light in the room is {my_kitchen.get_recommended_lighting()}")
+    print(f"The recommened light in the room is {my_kitchen.get_recommended_lighting()} lumens per square foot")
     counter,wall = my_kitchen.calculate_counter_space()
     print(f"{counter} {wall}")
