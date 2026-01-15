@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from  abc import ABC, abstractmethod   #ssabstract base class
 
 class Room(ABC):
     def __init__(self, length, width):
@@ -16,16 +16,16 @@ class Room(ABC):
         pass
 
     def calculate_area(self):
-        return self.length * self.width
+        return self.length * self.width  #concrete method
     
     def describe_room(self):
         area = self.calculate_area()
         return f"A {self.__class__.__name__} of {area} sq ft used for {self.get_purpose()}"
 
 class Bedroom(Room):
-    def __init__(self, length, width, bed_size):
+    def __init__(self, length, width, bed_size ):
         super().__init__(length, width)
-        self.bed_size = bed_size
+        self.bed_size = bed_size        
     def get_purpose(self):
         return f"I am sleeping here on a {self.bed_size} ft bed"
     def get_recommended_lighting(self):
