@@ -16,15 +16,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(CalculatorLayout())
         self.resize(300, 500)
 
-        self.setStyleSheet("""
-    QPushButton {
-        min-width: 60px;
-        min-height: 50px;
-        max-width: 60px;
-        max-height: 50px;
-        font-size: 16px;
-        }
-    """)
+       
 
 class CalculatorLayout(QWidget):
     def __init__(self):
@@ -41,13 +33,7 @@ class CalculatorLayout(QWidget):
         self.display.setFont(QFont("Arial", 40))
         layout.addWidget(self.display, 1, 0, 2, 4)
 
-        self.setStyleSheet("""
-            QPushButton {
-                min-width: 60px;
-                min-height: 35px;
-                font-size: 16px;
-            }
-        """)
+       
 
         # function buttons
         button_manu = QPushButton("☰")
