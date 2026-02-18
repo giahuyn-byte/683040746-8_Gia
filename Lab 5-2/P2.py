@@ -118,9 +118,6 @@ class CalculatorLayout(QWidget):
         layout.setSpacing(0)
         layout.setContentsMargins(5, 5, 5, 5)
 
-        # Column/Row stretch
-        #layout.setColumnStretch(0, 1)  # First column stretches more
-        #layout.setRowStretch(1, 2)     # Second row stretches more
         self.setLayout(layout)
 
     def append_value(self, value):
