@@ -1,5 +1,5 @@
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QStyle, QWidget, QVBoxLayout, QFormLayout,
+from PySide6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QStyle, QWidget, QVBoxLayout, QFormLayout,
                                QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton,
                                QFrame, QSpinBox, QColorDialog, QFileDialog, QToolBar)
 from PySide6.QtCore import Qt
@@ -127,6 +127,19 @@ class PersonalCard(QMainWindow):
 
 
     def update_display(self):
+        if not self.name.text().strip():
+            QMessageBox.warning(self, "Input Error", "Please enter your name.")
+            return
+        if self.position.currentIndex() == -1:
+            QMessageBox.warning(self, "Input Error", "Please select your position.")
+            return
+        if not self.email.text().strip() or "@" not in self.email.text() or "." not in self.email.text():
+            QMessageBox.warning(self, "Input Error", "Please enter a valid email address.")
+            return
+        if not self.fav_color.isValid():
+            QMessageBox.warning(self, "Input Error", "Please select a valid color.")
+            return
+        
         self.name_label.setText(self.name.text())
         self.age_label.setText(f"({self.age.value()})")
         self.position_label.setText(self.position.currentText())
