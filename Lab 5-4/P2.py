@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self.status = QStatusBar()
         self.setStatusBar(self.status)
         self.status.showMessage("Ready —— create your character")
-        self.status.addPermanentWidget(QLabel("Created by Burawitchaya."))
+        self.status.addPermanentWidget(QLabel("Created by Gia Huy Nguyen."))
 
     def show_status(self, msg, color="black"):
         self.status.setStyleSheet(f"color: {color};")
