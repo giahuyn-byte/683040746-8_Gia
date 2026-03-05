@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QDate
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIntValidator
 from PySide6.QtCore import QLocale
 
 class RoomCard(QWidget):
@@ -17,11 +17,12 @@ class RoomCard(QWidget):
 
     room_selected = Signal(str, int)
 
-    def __init__(self, room_name: str, price: int, description: str, emoji: str = "🏨"):
+    def __init__(self, room_name: str, price: int, description: str, emoji: str = "🏨", max_guests: int = 2):
         super().__init__()
         self._is_selected = False
         self.room_name = room_name
         self.price = price
+        self.max_guests = max_guests 
 
         self._build_ui(emoji, room_name, price, description)
         self.deselect()
@@ -235,7 +236,7 @@ class BookingPage(QWidget):
 
         self.phone_input = QLineEdit()
         self.phone_input.setPlaceholderText("e.g. 081-234-5678")
-
+        self.phone_input.setValidator(QIntValidator())
         self.checkin_input = QDateEdit()
         self.checkin_input.setDate(QDate.currentDate())
         self.checkin_input.setDisplayFormat("dd/MM/yyyy")
@@ -251,7 +252,7 @@ class BookingPage(QWidget):
         self.guests_input = QSpinBox()
         self.guests_input.setMinimum(1)
         self.guests_input.setMaximum(10)
-        self.guests_input.setValue(1)
+        
         self.guests_input.setSuffix(" guest(s)")
         self.guests_input.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         # Styles
@@ -301,23 +302,22 @@ class BookingPage(QWidget):
         main_layout.addWidget(room_title)
 
         rooms_data = [
-            ("Standard Room", 50,  "Single bed, Free Wi-Fi",             "🛏"),
-            ("Deluxe Room",   120, "Double bed, Ocean view, Wi-Fi",      "🌊"),
-            ("Suite Room",    250, "Living room, Jacuzzi, Premium view", "👑"),
-            ("Family Room",   160, "2 Bedrooms, Perfect for families",   "👨‍👩‍👧‍👦"),
+            ("Standard Room", 50,  "Single bed, Free Wi-Fi",             "🛏", 2),
+            ("Deluxe Room",   120, "Double bed, Ocean view, Wi-Fi",      "🌊", 2),
+            ("Suite Room",    250, "Living room, Jacuzzi, Premium view", "👑", 4),
+            ("Family Room",   160, "2 Bedrooms, Perfect for families",   "👨‍👩‍👧‍👦", 4),
         ]
 
-        cards_layout = QHBoxLayout()
+        cards_layout = QHBoxLayout() 
         cards_layout.setSpacing(14)
         cards_layout.setContentsMargins(0, 0, 0, 0)
 
-        for room_name, price, description, emoji in rooms_data:
-            card = RoomCard(room_name, price, description, emoji)
+        for room_name, price, description, emoji, max_guests in rooms_data:
+            card = RoomCard(room_name, price, description, emoji, max_guests)
             card.room_selected.connect(self._on_room_selected)
             self.cards.append(card)
             cards_layout.addWidget(card)
-
-        cards_layout.addStretch()
+        cards_layout.addStretch()  # Push cards to the left
         main_layout.addLayout(cards_layout)
 
         # ── Buttons ──
@@ -407,22 +407,43 @@ class BookingPage(QWidget):
         if not self.selected_room:
             QMessageBox.warning(self, "No Room Selected",
                                 "Please select a room before proceeding.")
+            
             return None
+        guests = self.guests_input.value()
 
+        # Find the selected card's max_guests
+        selected_card = next(c for c in self.cards if c.room_name == self.selected_room)
+        max_per_room = selected_card.max_guests
+
+        if guests > max_per_room:
+            rooms_needed = -(-guests // max_per_room)  # ceiling division
+            reply = QMessageBox.question(
+                self,
+                "Not Enough Space",
+                f"{self.selected_room} fits max {max_per_room} guest(s).\n"
+                f"For {guests} guests you would need {rooms_needed} rooms.\n\n"
+                f"Do you want to continue and book {rooms_needed} x {self.selected_room}?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return None  
+        else:
+            rooms_needed = 1
         nights = checkin.daysTo(checkout)
-        total = nights * self.selected_price
+        total = nights * self.selected_price * rooms_needed
 
         data_dict = {
-            "room": self.selected_room,
-            "price": self.selected_price,
-            "name": name,
-            "phone": phone,
-            "checkin": checkin.toString("dd/MM/yyyy"),
-            "checkout": checkout.toString("dd/MM/yyyy"),
-            "nights": nights,
-            "guests": self.guests_input.value(),
-            "total": total,
-        }
+                "room": self.selected_room,
+                "price": self.selected_price,
+                "name": name,
+                "phone": phone,
+                "checkin": checkin.toString("dd/MM/yyyy"),
+                "checkout": checkout.toString("dd/MM/yyyy"),
+                "nights": nights,
+                "guests": self.guests_input.value(),
+                "rooms_needed": rooms_needed,
+                "total": total,
+            }
 
         return data_dict
 
@@ -472,6 +493,7 @@ class ReviewPage(QWidget):
         self.display_rows = [
             ("🛏  Room",            ""),
             ("💰  Price / Night",   "$ -"),
+            ("🚪  Rooms",           ""),
             ("👤  Guest Name",      ""),
             ("📞  Phone",           ""),
             ("📅  Check-in",        ""),
@@ -556,10 +578,12 @@ class ReviewPage(QWidget):
 
     def load_data(self, data: dict):
         self.current_data = data
-
+        rooms = data.get('rooms_needed', 1)
+        price = data.get('price', 0)
         values = [
             data.get("room", ""),
-            f"${data.get('price', 0)}",
+            f"${price} x {rooms} room(s)",   # ← shows "$50 x 5 room(s)"
+            f"{rooms} room(s)",
             data.get("name", ""),
             data.get("phone", ""),
             data.get("checkin", ""),
@@ -625,12 +649,13 @@ class MainWindow(QMainWindow):
         """)
 
     def _go_to_review(self):
-        data = self.booking_page.get_booking_data()
+        data = self.booking_page.get_booking_data()  # ← must be get_booking_data() not {}
+
         if data is None:
             return
+        
         self.review_page.load_data(data)
         self.stack.setCurrentIndex(1)
-
     def _go_to_booking(self):
         self.stack.setCurrentIndex(0)
 
