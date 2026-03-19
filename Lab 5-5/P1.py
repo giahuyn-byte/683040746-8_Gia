@@ -32,7 +32,7 @@ class RoomCard(QWidget):
         self.setCursor(Qt.PointingHandCursor)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(14, 14, 14, 14)
+        layout.setContentsMargins(14, 14, 14, 14) #top left right bottom
         layout.setSpacing(6)
 
         emoji_lbl = QLabel(emoji)

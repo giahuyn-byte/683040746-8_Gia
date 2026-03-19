@@ -47,7 +47,6 @@ class InventoryApp(QMainWindow):
         self.student_id.currentTextChanged.connect(self.on_id_changed)  # ← auto-fill name
         input_layout.addWidget(student_id_label)
         input_layout.addWidget(self.student_id)
-
         student_name = QLabel("Student Name:")
         self.student_name_input = QLineEdit()
         input_layout.addWidget(student_name)

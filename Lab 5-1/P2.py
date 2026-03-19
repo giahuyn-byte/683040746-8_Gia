@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         about_yourself.setMaximumHeight(100)
         layout.addWidget(about_yourself)
 
-        accept_button_group = QButtonGroup()
+        accept_button_group = QButtonGroup()  # select 1 checkbox only
         accept_layout = QHBoxLayout()
         accept_radio = QCheckBox("I accept the terms and conditions")
         accept_button_group.addButton(accept_radio)
